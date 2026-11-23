@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Check, Eye, EyeOff, ImagePlus, Upload, UserPlus, X } from "lucide-react";
+import { Check, Eye, EyeOff, ImagePlus, Loader2, Upload, UserPlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,6 +26,7 @@ export default function SignUpPage() {
   const [imagePreview, setImagePreview] = React.useState("");
   const [isDragging, setIsDragging] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const passwordRules = [
@@ -64,7 +65,7 @@ export default function SignUpPage() {
 
   const previewSrc = imagePreview || imageUrl;
 
-  const handleSubmit =async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
@@ -83,22 +84,21 @@ export default function SignUpPage() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    const { data} = await authClient.signUp.email({
-      name,
-      email,
-      password,
-      image,
-      callbackURL: "/",
-       // An optional URL to redirect to after the user signs up.
-    });
-    
+    try {
+      setIsSubmitting(true);
+      const { data } = await authClient.signUp.email({
+        name,
+        email,
+        password,
+        image,
+        callbackURL: "/",
+      });
 
-
-   
-
-    console.log("Sign up form data:", data);
-    router.push("/")
-
+      console.log("Sign up form data:", data);
+      router.push("/");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -355,9 +355,17 @@ export default function SignUpPage() {
 
                   <Button
                     type="submit"
+                    disabled={isSubmitting}
                     className="h-11 w-full rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary-light hover:text-[#08090d]"
                   >
-                    Create Account
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" data-icon="inline-start" />
+                        Creating Account...
+                      </>
+                    ) : (
+                      "Create Account"
+                    )}
                   </Button>
 
                   <p className="text-center text-sm text-text-secondary">
