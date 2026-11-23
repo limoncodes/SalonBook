@@ -22,6 +22,7 @@ type ProfileDropdownProps = {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    role?:string |"user"
   };
 };
 
@@ -43,6 +44,7 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
     router.push("/");
     router.refresh();
   };
+  
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -94,13 +96,25 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
         </DropdownMenuGroup>
         <DropdownMenuSeparator className="my-1 bg-border/70" />
         <DropdownMenuGroup>
-          <DropdownMenuItem
+          {
+            user.role==="admin"?<>
+            <DropdownMenuItem
             className="cursor-pointer rounded-lg px-2.5 py-2 text-text-secondary focus:bg-primary/10 focus:text-primary-light"
-            render={<Link href="/dashboard" />}
+            render={<Link href="/dashboard/admin" />}
           >
             <LayoutDashboard className="size-4" />
             Dashboard
           </DropdownMenuItem>
+            </>:<>
+            <DropdownMenuItem
+            className="cursor-pointer rounded-lg px-2.5 py-2 text-text-secondary focus:bg-primary/10 focus:text-primary-light"
+            render={<Link href="/dashboard/user" />}
+          >
+            <LayoutDashboard className="size-4" />
+            Dashboard
+          </DropdownMenuItem>
+            </>
+          }
           <DropdownMenuItem
             variant="destructive"
             className="cursor-pointer rounded-lg px-2.5 py-2"
