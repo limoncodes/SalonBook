@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Menu, Scissors } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ProfileDropdown } from "@/components/home/profile-dropdown";
 import {
   Sheet,
   SheetClose,
@@ -12,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { authClient } from "@/lib/auth-client";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -19,6 +21,9 @@ const navLinks = [
 ];
 
 export function Navbar() {
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/90 backdrop-blur-xl">
       <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -52,21 +57,27 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Button
-            variant="outline"
-            className="h-10 rounded-lg border-primary/35 bg-transparent px-6 text-sm font-medium text-foreground hover:border-primary-light hover:bg-primary/10 hover:text-primary-light"
-            nativeButton={false}
-            render={<Link href="/sign-in" />}
-          >
-            Log In
-          </Button>
-          <Button
-            className="h-10 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-[0_10px_30px_rgba(139,92,246,0.28)] transition-all hover:bg-primary-light hover:text-[#08090d]"
-            nativeButton={false}
-            render={<Link href="/sign-up" />}
-          >
-            Sign Up
-          </Button>
+          {user ? (
+            <ProfileDropdown user={user} />
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                className="h-10 rounded-lg border-primary/35 bg-transparent px-6 text-sm font-medium text-foreground hover:border-primary-light hover:bg-primary/10 hover:text-primary-light"
+                nativeButton={false}
+                render={<Link href="/sign-in" />}
+              >
+                Log In
+              </Button>
+              <Button
+                className="h-10 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-[0_10px_30px_rgba(139,92,246,0.28)] transition-all hover:bg-primary-light hover:text-[#08090d]"
+                nativeButton={false}
+                render={<Link href="/sign-up" />}
+              >
+                Sign Up
+              </Button>
+            </>
+          )}
         </div>
 
         <div className="md:hidden">
@@ -117,28 +128,34 @@ export function Navbar() {
               </nav>
 
               <div className="mt-auto flex flex-col gap-3 border-t border-border px-6 py-6">
-                <SheetClose
-                  nativeButton={false}
-                  render={
-                    <Link
-                      href="/sign-in"
-                      className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-primary/35 bg-transparent px-4 text-sm font-medium text-foreground transition-colors hover:border-primary-light hover:bg-primary/10 hover:text-primary-light"
-                    />
-                  }
-                >
-                  Log In
-                </SheetClose>
-                <SheetClose
-                  nativeButton={false}
-                  render={
-                    <Link
-                      href="/sign-up"
-                      className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-light hover:text-[#08090d]"
-                    />
-                  }
-                >
-                  Sign Up
-                </SheetClose>
+                {user ? (
+                  <ProfileDropdown user={user} />
+                ) : (
+                  <>
+                    <SheetClose
+                      nativeButton={false}
+                      render={
+                        <Link
+                          href="/sign-in"
+                          className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-primary/35 bg-transparent px-4 text-sm font-medium text-foreground transition-colors hover:border-primary-light hover:bg-primary/10 hover:text-primary-light"
+                        />
+                      }
+                    >
+                      Log In
+                    </SheetClose>
+                    <SheetClose
+                      nativeButton={false}
+                      render={
+                        <Link
+                          href="/sign-up"
+                          className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-light hover:text-[#08090d]"
+                        />
+                      }
+                    >
+                      Sign Up
+                    </SheetClose>
+                  </>
+                )}
               </div>
             </SheetContent>
           </Sheet>
