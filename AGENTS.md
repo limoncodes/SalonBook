@@ -10,6 +10,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # SalonBook Client
 
+SalonBook is a salon appointment booking platform where customers can explore salon services, view service information, and request appointments online.
+
 Next.js App Router client (single package). Use npm (`package-lock.json` present).
 
 ## Commands
