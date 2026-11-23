@@ -16,8 +16,8 @@ import { cn } from "@/lib/utils";
 
 const slides = [
   {
-    image: "/hero-salon-3.jpg",
-    alt: "Elegant salon styling space",
+    image: "/banner-salon-1.jpg",
+    alt: "Luxury salon interior with elegant styling stations",
     eyebrow: "Premium Salon Booking",
     title: "Book Your Perfect",
     highlight: "Salon Experience",
@@ -29,8 +29,8 @@ const slides = [
     secondaryHref: "#how-it-works",
   },
   {
-    image: "/hero-salon-2.jpg",
-    alt: "Modern luxury salon interior",
+    image: "/banner-salon-2.jpg",
+    alt: "Professional hairstylist creating a beautiful hairstyle",
     eyebrow: "Expert Stylists",
     title: "Style That Matches",
     highlight: "Your Personality",
@@ -42,8 +42,8 @@ const slides = [
     secondaryHref: "/services",
   },
   {
-    image: "/hero-salon.jpg",
-    alt: "Professional hairstylist styling a client's hair in a luxury salon",
+    image: "/banner-salon-3.jpg",
+    alt: "Relaxing beauty salon treatment in a calm atmosphere",
     eyebrow: "Relax & Refresh",
     title: "Your Time For",
     highlight: "Self-Care",
