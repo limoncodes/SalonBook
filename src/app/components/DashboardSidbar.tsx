@@ -42,7 +42,7 @@ const menuItemsByRole: Record<"user" | "admin", MenuItem[]> = {
   admin: [
     { name: "Overview", url: "/dashboard/admin", icon: LayoutDashboard },
     { name: "Manage Services", url: "/dashboard/admin/services", icon: Scissors },
-    { name: "Add/Update Service", url: "/dashboard/admin/services/manage", icon: PlusCircle },
+    { name: "Add/Update Service", url: "/dashboard/admin/Add-Services", icon: PlusCircle },
     { name: "Manage Appointments", url: "/dashboard/admin/appointments", icon: CalendarDays },
     { name: "Manage Users", url: "/dashboard/admin/users", icon: Users },
     { name: "Transactions", url: "/dashboard/admin/transactions", icon: CreditCard },
@@ -94,7 +94,7 @@ export function DashboardSidber() {
                     <SidebarMenuButton
                       isActive={isActive}
                       render={<Link href={item.url} />}
-                      className="h-11 rounded-xl px-3 text-text-secondary transition-all duration-200 hover:bg-primary/10 hover:text-primary-light data-[active=true]:bg-primary/15 data-[active=true]:text-primary-light data-[active=true]:shadow-[inset_0_0_0_1px_rgba(139,92,246,0.22)]"
+                      className="h-11 rounded-xl px-3 text-text-secondary transition-all duration-200 hover:bg-primary/10 hover:text-primary-light data-active:bg-primary/15 data-active:text-primary-light data-active:shadow-[inset_0_0_0_1px_rgba(139,92,246,0.22)]"
                     >
                       <span
                         className={`flex size-7 items-center justify-center rounded-lg transition-colors ${
