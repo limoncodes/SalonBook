@@ -14,6 +14,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 export default function SignUpPage() {
   const [fullName, setFullName] = React.useState("");
@@ -23,6 +25,7 @@ export default function SignUpPage() {
   const [imageUrl, setImageUrl] = React.useState("");
   const [imagePreview, setImagePreview] = React.useState("");
   const [isDragging, setIsDragging] = React.useState(false);
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const passwordRules = [
@@ -30,14 +33,27 @@ export default function SignUpPage() {
     { label: "Uppercase letter", valid: /[A-Z]/.test(password) },
     { label: "Lowercase letter", valid: /[a-z]/.test(password) },
   ];
+  const router = useRouter()
 
   const allPasswordValid = passwordRules.every((rule) => rule.valid);
   const showPasswordState = password.length > 0;
 
-  const handleFile = (file?: File) => {
+  const handleFile = async (file?: File) => {
     if (!file || !file.type.startsWith("image/")) return;
     const preview = URL.createObjectURL(file);
     setImagePreview(preview);
+    setErrors((prev) => ({ ...prev, image: "" }));
+    const formdata = new FormData()
+    formdata.append("image", file)
+    const imagebbApi = `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMAGEBB_API_KEY}`
+    const res = await fetch(imagebbApi, {
+      method: "POST",
+      body: formdata
+    })
+    const result = await res.json();
+    const imageURL = result.data.url;
+    setImageUrl(imageURL)
+
   };
 
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -48,23 +64,46 @@ export default function SignUpPage() {
 
   const previewSrc = imagePreview || imageUrl;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit =async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
-    const data = {
-      fullName: formData.get("fullName"),
-      email: formData.get("email"),
-      password: formData.get("password"),
-      imageUrl: formData.get("imageUrl"),
-    };
+    const name = String(formData.get("fullName") || "").trim();
+    const email = String(formData.get("email") || "").trim();
+    const password = String(formData.get("password") || "");
+    const image = String(formData.get("imageUrl") || "").trim();
+
+    const nextErrors: Record<string, string> = {};
+    if (!name) nextErrors.fullName = "Full name is required";
+    if (!email) nextErrors.email = "Email is required";
+    if (!password) nextErrors.password = "Password is required";
+    if (!allPasswordValid) nextErrors.password = "Password does not meet requirements";
+    if (!imagePreview && !image) nextErrors.image = "Profile image is required";
+
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    const { data} = await authClient.signUp.email({
+      name,
+      email,
+      password,
+      image,
+      callbackURL: "/",
+       // An optional URL to redirect to after the user signs up.
+    });
+    
+
+
+   
 
     console.log("Sign up form data:", data);
+    router.push("/")
+
   };
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
-      
+
       <main className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full max-w-5xl">
           <div className="grid gap-8 lg:grid-cols-[1fr_1.05fr] lg:items-center">
@@ -107,9 +146,20 @@ export default function SignUpPage() {
                       type="text"
                       placeholder="Enter your full name"
                       value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="h-11 border-border bg-background/40 px-3.5 text-foreground placeholder:text-text-secondary focus-visible:border-primary/60 focus-visible:ring-primary/25"
+                      onChange={(e) => {
+                        setFullName(e.target.value);
+                        if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: "" }));
+                      }}
+                      className={cn(
+                        "h-11 bg-background/40 px-3.5 text-foreground placeholder:text-text-secondary focus-visible:ring-primary/25",
+                        errors.fullName
+                          ? "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+                          : "border-border focus-visible:border-primary/60",
+                      )}
                     />
+                    {errors.fullName && (
+                      <p className="text-xs text-destructive">{errors.fullName}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -122,9 +172,20 @@ export default function SignUpPage() {
                       type="email"
                       placeholder="Enter your email address"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="h-11 border-border bg-background/40 px-3.5 text-foreground placeholder:text-text-secondary focus-visible:border-primary/60 focus-visible:ring-primary/25"
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
+                      }}
+                      className={cn(
+                        "h-11 bg-background/40 px-3.5 text-foreground placeholder:text-text-secondary focus-visible:ring-primary/25",
+                        errors.email
+                          ? "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+                          : "border-border focus-visible:border-primary/60",
+                      )}
                     />
+                    {errors.email && (
+                      <p className="text-xs text-destructive">{errors.email}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -138,17 +199,25 @@ export default function SignUpPage() {
                         type={showPassword ? "text" : "password"}
                         placeholder="Create a password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
+                        }}
                         className={cn(
                           "h-11 bg-background/40 px-3.5 pr-11 text-foreground placeholder:text-text-secondary focus-visible:ring-3",
+                          errors.password &&
+                          "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20",
+                          !errors.password &&
                           !showPasswordState &&
-                            "border-border focus-visible:border-primary/60 focus-visible:ring-primary/25",
+                          "border-border focus-visible:border-primary/60 focus-visible:ring-primary/25",
+                          !errors.password &&
                           showPasswordState &&
-                            !allPasswordValid &&
-                            "border-amber-500/70 focus-visible:border-amber-500 focus-visible:ring-amber-500/20",
+                          !allPasswordValid &&
+                          "border-amber-500/70 focus-visible:border-amber-500 focus-visible:ring-amber-500/20",
+                          !errors.password &&
                           showPasswordState &&
-                            allPasswordValid &&
-                            "border-success/70 focus-visible:border-success focus-visible:ring-success/20",
+                          allPasswordValid &&
+                          "border-success/70 focus-visible:border-success focus-visible:ring-success/20",
                         )}
                       />
                       <button
@@ -171,13 +240,13 @@ export default function SignUpPage() {
                           className={cn(
                             "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
                             !showPasswordState &&
-                              "border-border bg-background/30 text-text-secondary",
+                            "border-border bg-background/30 text-text-secondary",
                             showPasswordState &&
-                              rule.valid &&
-                              "border-success/30 bg-success/10 text-success",
+                            rule.valid &&
+                            "border-success/30 bg-success/10 text-success",
                             showPasswordState &&
-                              !rule.valid &&
-                              "border-amber-500/30 bg-amber-500/10 text-amber-400",
+                            !rule.valid &&
+                            "border-amber-500/30 bg-amber-500/10 text-amber-400",
                           )}
                         >
                           {rule.valid ? (
@@ -189,6 +258,9 @@ export default function SignUpPage() {
                         </span>
                       ))}
                     </div>
+                    {errors.password && (
+                      <p className="text-xs text-destructive">{errors.password}</p>
+                    )}
                   </div>
 
                   <div className="space-y-3">
@@ -203,9 +275,11 @@ export default function SignUpPage() {
                       onDrop={onDrop}
                       className={cn(
                         "rounded-xl border border-dashed p-4 transition-colors",
-                        isDragging
-                          ? "border-primary bg-primary/10"
-                          : "border-border bg-background/25 hover:border-primary/40",
+                        errors.image
+                          ? "border-destructive bg-destructive/5"
+                          : isDragging
+                            ? "border-primary bg-primary/10"
+                            : "border-border bg-background/25 hover:border-primary/40",
                       )}
                     >
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -261,10 +335,22 @@ export default function SignUpPage() {
                         type="url"
                         placeholder="https://example.com/profile-image.jpg"
                         value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                        className="h-11 border-border bg-background/40 px-3.5 text-foreground placeholder:text-text-secondary focus-visible:border-primary/60 focus-visible:ring-primary/25"
+                        onChange={(e) => {
+                          setImageUrl(e.target.value);
+                          if (errors.image) setErrors((prev) => ({ ...prev, image: "" }));
+                          console.log("Profile image URL:", e.target.value);
+                        }}
+                        className={cn(
+                          "h-11 bg-background/40 px-3.5 text-foreground placeholder:text-text-secondary focus-visible:ring-primary/25",
+                          errors.image
+                            ? "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+                            : "border-border focus-visible:border-primary/60",
+                        )}
                       />
                     </div>
+                    {errors.image && (
+                      <p className="text-xs text-destructive">{errors.image}</p>
+                    )}
                   </div>
 
                   <Button
