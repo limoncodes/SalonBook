@@ -39,3 +39,14 @@ export const getaddServices = async (
   const data: ServiceItem[] = await res.json()
   return data
 }
+
+export const getServiceById = async (id: string): Promise<ServiceItem> => {
+  const res = await fetch(`${baseurl}/addServices/${id}`, { cache: "no-store" })
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch service")
+  }
+
+  const data: ServiceItem = await res.json()
+  return data
+}

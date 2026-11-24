@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Clock, Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -159,6 +160,15 @@ export function ServicesClient({ initialServices }: ServicesClientProps) {
                   <span className="absolute left-4 top-4 rounded-full border border-primary/30 bg-background/70 px-3 py-1 text-xs font-medium text-primary-light backdrop-blur-sm">
                     {service.serviceCategory}
                   </span>
+                  <span
+                    className={`absolute right-4 top-4 rounded-full border px-3 py-1 text-xs font-medium backdrop-blur-sm ${
+                      service.serviceStatus === "Active"
+                        ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-400"
+                        : "border-zinc-500/30 bg-zinc-500/15 text-zinc-300"
+                    }`}
+                  >
+                    {service.serviceStatus}
+                  </span>
                 </div>
 
                 <CardContent className="flex flex-1 flex-col p-5">
@@ -181,7 +191,11 @@ export function ServicesClient({ initialServices }: ServicesClientProps) {
                   </p>
 
                   <div className="mt-6 pt-2">
-                    <Button className="h-10 w-full rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary-light hover:text-[#08090d]">
+                    <Button
+                      nativeButton={false}
+                      render={<Link href={`/services/${service._id}`} />}
+                      className="h-10 w-full rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary-light hover:text-[#08090d]"
+                    >
                       View Details
                     </Button>
                   </div>
