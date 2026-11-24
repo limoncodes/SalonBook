@@ -1,10 +1,10 @@
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, CalendarDays, Clock, Tag } from "lucide-react"
+import { ArrowLeft, Clock, Tag } from "lucide-react"
 import { getServiceById } from "@/components/api/get"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { BookingDialog } from "./booking-dialog"
 
 export const instant = false
 
@@ -94,13 +94,7 @@ export default async function ServiceDetailsPage({
               </div>
 
               <div className="mt-auto pt-8">
-                <Button
-                  className="h-11 w-full rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary-light hover:text-[#08090d] sm:w-auto sm:px-8"
-                  disabled={service.serviceStatus !== "Active"}
-                >
-                  <CalendarDays className="size-4" />
-                  Book Appointment
-                </Button>
+                <BookingDialog service={service} />
                 {service.serviceStatus !== "Active" && (
                   <p className="mt-3 text-sm text-text-secondary">
                     Booking is unavailable for inactive services.
