@@ -95,6 +95,7 @@ export function BookingDialog({ service }: BookingDialogProps) {
           serviceId: service._id,
           serviceName: service.serviceName,
           serviceCategory: service.serviceCategory,
+          serviceImage: service.serviceImage,
           price: service.price,
           duration: service.duration,
           appointmentDate,
