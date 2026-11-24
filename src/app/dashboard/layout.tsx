@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { DashboardSidber } from "../components/DashboardSidbar"
+import { DashboardGuard } from "./dashboard-guard"
 
 const Dashboardlayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -13,7 +14,7 @@ const Dashboardlayout = ({ children }: { children: React.ReactNode }) => {
           <SidebarTrigger />
         </div>
         <div className="min-w-0 flex-1">
-          {children}
+          <DashboardGuard>{children}</DashboardGuard>
         </div>
       </SidebarInset>
     </SidebarProvider>
