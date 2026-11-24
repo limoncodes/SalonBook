@@ -54,6 +54,7 @@ export default function SignUpPage() {
     const result = await res.json();
     const imageURL = result.data.url;
     setImageUrl(imageURL)
+    
 
   };
 

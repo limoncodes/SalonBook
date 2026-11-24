@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { ImagePlus, PlusCircle, Upload } from "lucide-react";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { AddServices } from "@/components/api/post";
 
 const serviceCategories = [
   "Haircut",
@@ -26,17 +28,29 @@ const serviceCategories = [
 ];
 
 export default function AddServicePage() {
-  const [serviceImage, setServiceImage] = React.useState<File | null>(null);
+  const [serviceImage, setServiceImage] = React.useState("");
+  const [serviceImageName, setServiceImageName] = React.useState("");
   const [imagePreview, setImagePreview] = React.useState("");
   const [isDragging, setIsDragging] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleFile = (file?: File) => {
+  const handleFile = async (file?: File) => {
     if (!file || !file.type.startsWith("image/")) return;
-    setServiceImage(file);
+    setServiceImageName(file.name);
     setImagePreview(URL.createObjectURL(file));
     setErrors((prev) => ({ ...prev, serviceImage: "" }));
+
+    const formdata = new FormData();
+    formdata.append("image", file);
+    const imagebbapi = `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMAGEBB_API_KEY}`;
+    const res = await fetch(imagebbapi, {
+      method: "POST",
+      body: formdata,
+    });
+    const result = await res.json();
+    const imageurl = result?.data?.url || "";
+    setServiceImage(imageurl);
   };
 
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -45,7 +59,7 @@ export default function AddServicePage() {
     handleFile(e.dataTransfer.files?.[0]);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
@@ -53,8 +67,8 @@ export default function AddServicePage() {
       serviceName: String(formData.get("serviceName") || "").trim(),
       serviceCategory: String(formData.get("serviceCategory") || "").trim(),
       description: String(formData.get("description") || "").trim(),
-      price: String(formData.get("price") || "").trim(),
-      duration: String(formData.get("duration") || "").trim(),
+      price: Number(formData.get("price")),
+      duration: Number(formData.get("duration")),
       serviceStatus: String(formData.get("serviceStatus") || "Active").trim(),
       serviceImage,
     };
@@ -63,16 +77,23 @@ export default function AddServicePage() {
     if (!data.serviceName) nextErrors.serviceName = "Service name is required";
     if (!data.serviceCategory) nextErrors.serviceCategory = "Service category is required";
     if (!data.description) nextErrors.description = "Description is required";
-    if (!data.price) nextErrors.price = "Price is required";
-    else if (Number(data.price) <= 0) nextErrors.price = "Price must be a positive number";
-    if (!data.duration) nextErrors.duration = "Duration is required";
-    else if (Number(data.duration) <= 0) nextErrors.duration = "Duration must be a positive number";
+    if (!formData.get("price")) nextErrors.price = "Price is required";
+    else if (data.price <= 0) nextErrors.price = "Price must be a positive number";
+    if (!formData.get("duration")) nextErrors.duration = "Duration is required";
+    else if (data.duration <= 0) nextErrors.duration = "Duration must be a positive number";
     if (!serviceImage) nextErrors.serviceImage = "Service image is required";
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    console.log("Add service form data:", data);
+    try {
+      const result = await AddServices(data);
+      console.log("Service added:", result);
+      toast.success("Service added successfully");
+    } catch (error) {
+      console.error("Failed to add service:", error);
+      toast.error("Failed to add service");
+    }
   };
 
   const clearError = (field: string) => {
@@ -298,9 +319,9 @@ export default function AddServicePage() {
                           <Upload className="size-4" data-icon="inline-start" />
                           Select Image
                         </Button>
-                        {serviceImage && (
+                        {serviceImageName && (
                           <p className="truncate text-xs text-text-secondary sm:text-sm">
-                            Selected file: {serviceImage.name}
+                            Selected file: {serviceImageName}
                           </p>
                         )}
                       </div>

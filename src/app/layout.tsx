@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
+import { ToastContainer } from "react-toastify";
 import "./globals.css";
+import "react-toastify/dist/ReactToastify.css";
 import { cn } from "@/lib/utils";
 import { Navbar } from "@/components/home/navbar";
 
@@ -30,9 +32,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       )}
     >
       <body className="min-h-full flex flex-col">
-        <Navbar/>
+        <Navbar />
 
         <main>{children}</main>
+        <ToastContainer position="top-right" autoClose={3000} theme="dark" />
       </body>
     </html>
   );
