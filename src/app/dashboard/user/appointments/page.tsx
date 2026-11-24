@@ -5,7 +5,7 @@ import Link from "next/link"
 import { CalendarDays, Clock, Eye, Trash2, XCircle } from "lucide-react"
 import { toast } from "react-toastify"
 import { useSession } from "@/lib/auth-client"
-import { PaymentButton } from "./payment-button"
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +33,7 @@ type Appointment = {
   message?: string
   userEmail: string
   userName?: string
-  appointmentStatus: "Pending" | "Confirmed" | "Cancelled"
+  appointmentStatus: "Pending" | "Confirmed" | "Cancelled" | "Completed"
   paymentStatus: "Unpaid" | "Paid"
   createdAt?: string
 }
@@ -48,6 +48,7 @@ function formatDate(value?: string) {
 function statusClass(status: string) {
   if (status === "Pending") return "bg-amber-500/15 text-amber-400"
   if (status === "Confirmed" || status === "Paid") return "bg-emerald-500/15 text-emerald-400"
+  if (status === "Completed") return "bg-sky-500/15 text-sky-400"
   return "bg-zinc-500/15 text-zinc-300"
 }
 
@@ -163,7 +164,7 @@ export default function UserAppointmentsPage() {
             My <span className="text-primary-light">Appointments</span>
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary sm:text-base">
-            View your appointment requests, track status, cancel pending requests, and pay for confirmed appointments.
+            View your appointment requests, track status, and cancel pending requests.
           </p>
         </div>
 
@@ -196,7 +197,6 @@ export default function UserAppointmentsPage() {
                     {appointments.map((appointment) => {
                       const isBusy = busyId === appointment._id
                       const canCancel = appointment.appointmentStatus === "Pending"
-                      const canPay = appointment.appointmentStatus === "Confirmed" && appointment.paymentStatus === "Unpaid"
                       const canDelete = appointment.appointmentStatus === "Cancelled"
                       return (
                         <tr key={appointment._id} className="border-b border-border/50 last:border-b-0">
@@ -249,14 +249,7 @@ export default function UserAppointmentsPage() {
                               >
                                 <Eye className="size-3.5" /> Details
                               </Button>
-                              {canPay && (
-                                <PaymentButton
-                                  appointmentId={appointment._id}
-                                  serviceName={appointment.serviceName}
-                                  amount={appointment.price}
-                                  disabled={isBusy}
-                                />
-                              )}
+
                               {canCancel && (
                                 <Button variant="outline" size="sm" className="h-8 border-border bg-background/30 text-destructive hover:bg-destructive/10" disabled={isBusy} onClick={() => setCancelTarget(appointment)}>
                                   <XCircle className="size-3.5" /> Cancel

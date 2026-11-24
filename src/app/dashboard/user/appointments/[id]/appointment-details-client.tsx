@@ -4,7 +4,7 @@ import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { ArrowLeft, CalendarDays, Clock, CreditCard, Tag, XCircle } from "lucide-react"
+import { ArrowLeft, CalendarDays, Clock, Tag, XCircle } from "lucide-react"
 import { toast } from "react-toastify"
 import { useSession } from "@/lib/auth-client"
 import {
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { PaymentButton } from "../payment-button"
+
 
 type Appointment = {
   _id: string
@@ -30,7 +30,7 @@ type Appointment = {
   appointmentDate: string
   timeSlot: string
   message?: string
-  appointmentStatus: "Pending" | "Confirmed" | "Cancelled"
+  appointmentStatus: "Pending" | "Confirmed" | "Cancelled" | "Completed"
   paymentStatus: "Unpaid" | "Paid"
   createdAt?: string
 }
@@ -40,6 +40,13 @@ function formatDate(value?: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
   return date.toLocaleString()
+}
+
+function statusClass(status: string) {
+  if (status === "Pending") return "bg-amber-500/15 text-amber-400"
+  if (status === "Confirmed" || status === "Paid") return "bg-emerald-500/15 text-emerald-400"
+  if (status === "Completed") return "bg-sky-500/15 text-sky-400"
+  return "bg-zinc-500/15 text-zinc-300"
 }
 
 export function AppointmentDetailsClient() {
@@ -109,7 +116,6 @@ export function AppointmentDetailsClient() {
     return <div className="px-6 py-10 text-text-secondary">Appointment not found.</div>
   }
 
-  const canPay = appointment.appointmentStatus === "Confirmed" && appointment.paymentStatus === "Unpaid"
   const canCancel = appointment.appointmentStatus === "Pending"
 
   return (
@@ -163,10 +169,10 @@ export function AppointmentDetailsClient() {
               </div>
 
               <div className="mt-6 flex flex-wrap gap-2">
-                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${appointment.appointmentStatus === "Confirmed" ? "bg-emerald-500/15 text-emerald-400" : appointment.appointmentStatus === "Pending" ? "bg-amber-500/15 text-amber-400" : "bg-zinc-500/15 text-zinc-300"}`}>
+                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${statusClass(appointment.appointmentStatus)}`}>
                   {appointment.appointmentStatus}
                 </span>
-                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${appointment.paymentStatus === "Paid" ? "bg-emerald-500/15 text-emerald-400" : "bg-zinc-500/15 text-zinc-300"}`}>
+                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${statusClass(appointment.paymentStatus)}`}>
                   {appointment.paymentStatus}
                 </span>
               </div>
@@ -179,23 +185,13 @@ export function AppointmentDetailsClient() {
               )}
 
               <div className="mt-auto flex flex-wrap gap-3 pt-8">
-                {canPay && (
-                  <PaymentButton
-                    appointmentId={appointment._id}
-                    serviceName={appointment.serviceName}
-                    amount={appointment.price}
-                    disabled={busy}
-                  />
-                )}
                 {canCancel && (
                   <Button variant="outline" className="border-border bg-background/30 text-destructive hover:bg-destructive/10" onClick={() => setCancelOpen(true)} disabled={busy}>
                     <XCircle className="size-4" /> Cancel Appointment
                   </Button>
                 )}
-                {!canPay && !canCancel && (
-                  <div className="inline-flex items-center gap-2 text-sm text-text-secondary">
-                    <CreditCard className="size-4" /> No actions available for this appointment.
-                  </div>
+                {!canCancel && (
+                  <p className="text-sm text-text-secondary">No actions available for this appointment.</p>
                 )}
               </div>
             </CardContent>
