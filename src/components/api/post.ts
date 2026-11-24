@@ -10,7 +10,14 @@ export type AddServicePayload = {
   serviceImage: string
 }
 
-export const AddServices = async (formData: AddServicePayload) => {
+export type AddServiceResponse = {
+  acknowledged: boolean
+  insertedId: string
+}
+
+export const AddServices = async (
+  formData: AddServicePayload,
+): Promise<AddServiceResponse> => {
   const res = await fetch(`${baseurl}/Add-Services`, {
     method: "POST",
     headers: {
@@ -23,6 +30,6 @@ export const AddServices = async (formData: AddServicePayload) => {
     throw new Error("Failed to add service")
   }
 
-  return res.json()
+  return res.json() as Promise<AddServiceResponse>
 }
 

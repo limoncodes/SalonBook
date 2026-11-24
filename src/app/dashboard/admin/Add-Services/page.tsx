@@ -15,6 +15,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { AddServices } from "@/components/api/post";
+export type AddServicePayload = {
+  serviceName: string
+  serviceCategory: string
+  description: string
+  price: number
+  duration: number
+  serviceStatus: "Active" | "Inactive"
+  serviceImage: string
+}
+
 
 const serviceCategories = [
   "Haircut",
@@ -34,6 +44,7 @@ export default function AddServicePage() {
   const [isDragging, setIsDragging] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
 
   const handleFile = async (file?: File) => {
     if (!file || !file.type.startsWith("image/")) return;
@@ -63,13 +74,14 @@ export default function AddServicePage() {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
-    const data = {
+    const status = String(formData.get("serviceStatus") || "Active").trim();
+    const data: AddServicePayload = {
       serviceName: String(formData.get("serviceName") || "").trim(),
       serviceCategory: String(formData.get("serviceCategory") || "").trim(),
       description: String(formData.get("description") || "").trim(),
       price: Number(formData.get("price")),
       duration: Number(formData.get("duration")),
-      serviceStatus: String(formData.get("serviceStatus") || "Active").trim(),
+      serviceStatus: status === "Inactive" ? "Inactive" : "Active",
       serviceImage,
     };
 
@@ -87,7 +99,7 @@ export default function AddServicePage() {
     if (Object.keys(nextErrors).length > 0) return;
 
     try {
-      const result = await AddServices(data);
+      const result: { acknowledged: boolean; insertedId: string } = await AddServices(data)
       console.log("Service added:", result);
       toast.success("Service added successfully");
     } catch (error) {
