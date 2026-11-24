@@ -52,6 +52,7 @@ export function BookingDialog({ service }: BookingDialogProps) {
   const [submitError, setSubmitError] = React.useState("")
 
   const isInactive = service.serviceStatus !== "Active"
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === "admin"
 
   const resetForm = () => {
     setAppointmentDate(today)
@@ -125,6 +126,8 @@ export function BookingDialog({ service }: BookingDialogProps) {
       setIsSubmitting(false)
     }
   }
+
+  if (isAdmin) return null
 
   return (
     <Dialog

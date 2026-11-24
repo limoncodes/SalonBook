@@ -7,6 +7,7 @@ import { useParams } from "next/navigation"
 import { ArrowLeft, CalendarDays, Clock, Tag, XCircle } from "lucide-react"
 import { toast } from "react-toastify"
 import { useSession } from "@/lib/auth-client"
+import { PaymentButton } from "../payment-button"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -116,6 +117,7 @@ export function AppointmentDetailsClient() {
     return <div className="px-6 py-10 text-text-secondary">Appointment not found.</div>
   }
 
+  const canPay = appointment.appointmentStatus === "Confirmed" && appointment.paymentStatus === "Unpaid"
   const canCancel = appointment.appointmentStatus === "Pending"
 
   return (
@@ -185,12 +187,20 @@ export function AppointmentDetailsClient() {
               )}
 
               <div className="mt-auto flex flex-wrap gap-3 pt-8">
+                {canPay && (
+                  <PaymentButton
+                    appointmentId={appointment._id}
+                    serviceName={appointment.serviceName}
+                    amount={appointment.price}
+                    disabled={busy}
+                  />
+                )}
                 {canCancel && (
                   <Button variant="outline" className="border-border bg-background/30 text-destructive hover:bg-destructive/10" onClick={() => setCancelOpen(true)} disabled={busy}>
                     <XCircle className="size-4" /> Cancel Appointment
                   </Button>
                 )}
-                {!canCancel && (
+                {!canPay && !canCancel && (
                   <p className="text-sm text-text-secondary">No actions available for this appointment.</p>
                 )}
               </div>

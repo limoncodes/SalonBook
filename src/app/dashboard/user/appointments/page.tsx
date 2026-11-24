@@ -5,6 +5,7 @@ import Link from "next/link"
 import { CalendarDays, Clock, Eye, Trash2, XCircle } from "lucide-react"
 import { toast } from "react-toastify"
 import { useSession } from "@/lib/auth-client"
+import { PaymentButton } from "./payment-button"
 
 import {
   AlertDialog,
@@ -164,7 +165,7 @@ export default function UserAppointmentsPage() {
             My <span className="text-primary-light">Appointments</span>
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary sm:text-base">
-            View your appointment requests, track status, and cancel pending requests.
+            View your appointment requests, track status, cancel pending requests, and pay for confirmed appointments.
           </p>
         </div>
 
@@ -197,6 +198,7 @@ export default function UserAppointmentsPage() {
                     {appointments.map((appointment) => {
                       const isBusy = busyId === appointment._id
                       const canCancel = appointment.appointmentStatus === "Pending"
+                      const canPay = appointment.appointmentStatus === "Confirmed" && appointment.paymentStatus === "Unpaid"
                       const canDelete = appointment.appointmentStatus === "Cancelled"
                       return (
                         <tr key={appointment._id} className="border-b border-border/50 last:border-b-0">
@@ -249,7 +251,14 @@ export default function UserAppointmentsPage() {
                               >
                                 <Eye className="size-3.5" /> Details
                               </Button>
-
+                              {canPay && (
+                                <PaymentButton
+                                  appointmentId={appointment._id}
+                                  serviceName={appointment.serviceName}
+                                  amount={appointment.price}
+                                  disabled={isBusy}
+                                />
+                              )}
                               {canCancel && (
                                 <Button variant="outline" size="sm" className="h-8 border-border bg-background/30 text-destructive hover:bg-destructive/10" disabled={isBusy} onClick={() => setCancelTarget(appointment)}>
                                   <XCircle className="size-3.5" /> Cancel
