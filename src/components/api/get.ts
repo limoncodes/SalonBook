@@ -15,6 +15,7 @@ export type ServiceQuery = {
   search?: string
   category?: string
   sort?: string
+  status?: string
 }
 
 export const getaddServices = async (
@@ -27,6 +28,7 @@ export const getaddServices = async (
     params.set("category", query.category)
   }
   if (query.sort && query.sort !== "default") params.set("sort", query.sort)
+  if (query.status && query.status !== "All") params.set("status", query.status)
 
   const queryString = params.toString()
   const url = `${baseurl}/addServices${queryString ? `?${queryString}` : ""}`

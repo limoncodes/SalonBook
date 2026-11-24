@@ -42,6 +42,7 @@ export function ServicesClient({ initialServices }: ServicesClientProps) {
         if (search.trim()) params.set("search", search.trim());
         if (category && category !== "All") params.set("category", category);
         if (sortBy && sortBy !== "default") params.set("sort", sortBy);
+        params.set("status", "Active");
 
         const queryString = params.toString();
         const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
