@@ -1,7 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { CreditCard, ShieldCheck } from "lucide-react"
+import { CreditCard, Loader2, ShieldCheck } from "lucide-react"
+import { toast } from "react-toastify"
+import { useSession } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -26,12 +28,42 @@ export function PaymentButton({
   amount,
   disabled,
 }: PaymentButtonProps) {
+  const { data: session } = useSession()
   const [open, setOpen] = React.useState(false)
+  const [isLoading, setIsLoading] = React.useState(false)
 
   const handlePayment = async () => {
-    // TODO: Add your Stripe payment setup here.
-    // You have access to appointmentId, serviceName, and amount.
-    console.log("Stripe payment setup pending:", { appointmentId, serviceName, amount })
+    if (!session?.user?.email) {
+      toast.error("Please sign in to make a payment")
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+      const res = await fetch(`${baseurl}/create-checkout-session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          appointmentId,
+          userEmail: session.user.email,
+        }),
+      })
+
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.url) {
+        const message = data?.error
+          ? `${data.message || "Failed to start payment"}: ${data.error}`
+          : data?.message || "Failed to start payment"
+        throw new Error(message)
+      }
+
+      window.location.href = data.url
+    } catch (error) {
+      console.error("Payment error:", error)
+      toast.error(error instanceof Error ? error.message : "Failed to start payment")
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -72,27 +104,21 @@ export function PaymentButton({
             </div>
           </div>
 
-          <div className="rounded-xl border border-border/70 bg-background/30 p-4">
-            <p className="text-sm text-text-secondary">Appointment ID</p>
-            <p className="mt-1 break-all text-sm font-medium text-foreground">{appointmentId}</p>
-          </div>
-
           <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm text-text-secondary">
             <ShieldCheck className="size-4 text-emerald-400" />
-            Payment will be processed securely with Stripe.
+            You will be redirected to Stripe to complete your payment securely.
           </div>
-
-          {/* TODO: Add your Stripe Elements / Checkout integration here. */}
         </div>
 
         <DialogFooter>
           <Button
             type="button"
+            disabled={isLoading}
             className="h-11 w-full rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary-light hover:text-[#08090d]"
             onClick={handlePayment}
           >
-            <CreditCard className="size-4" />
-            Pay ${amount} with Stripe
+            {isLoading ? <Loader2 className="size-4 animate-spin" /> : <CreditCard className="size-4" />}
+            {isLoading ? "Redirecting..." : `Pay $${amount} with Stripe`}
           </Button>
         </DialogFooter>
       </DialogContent>
