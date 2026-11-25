@@ -22,7 +22,7 @@ type ProfileDropdownProps = {
     name?: string | null;
     email?: string | null;
     image?: string | null;
-    role?:string |"user"
+    role?: string | null;
   };
 };
 
