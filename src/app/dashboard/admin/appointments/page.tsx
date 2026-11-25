@@ -394,28 +394,28 @@ export default function AdminAppointmentsPage() {
                             </td>
                             <td className="px-4 py-4 text-text-secondary">{formatDate(appointment.createdAt)}</td>
                             <td className="px-6 py-4 sm:px-8">
-                              <div className="flex justify-end gap-2">
-                                <Button variant="outline" size="sm" className="h-8 border-border bg-background/30" nativeButton={false} render={<Link href={`/dashboard/admin/appointments/${appointment._id}`} />}>
+                              <div className="ml-auto grid w-[220px] grid-cols-2 gap-2">
+                                <Button variant="outline" size="sm" className="h-8 w-full border-border bg-background/30" nativeButton={false} render={<Link href={`/dashboard/admin/appointments/${appointment._id}`} />}>
                                   <Eye className="size-3.5" /> Details
                                 </Button>
                                 {canConfirm && (
-                                  <Button variant="outline" size="sm" className="h-8 border-border bg-background/30 text-emerald-400 hover:text-emerald-300" disabled={isBusy} onClick={() => void handleConfirm(appointment)}>
+                                  <Button variant="outline" size="sm" className="h-8 w-full border-border bg-background/30 text-emerald-400 hover:text-emerald-300" disabled={isBusy} onClick={() => void handleConfirm(appointment)}>
                                     <CheckCircle2 className="size-3.5" /> {isBusy ? "Confirming..." : "Confirm"}
                                   </Button>
                                 )}
                                 {canComplete && (
-                                  <Button variant="outline" size="sm" className="h-8 border-border bg-background/30 text-sky-400 hover:text-sky-300" disabled={isBusy} onClick={() => void handleComplete(appointment)}>
+                                  <Button variant="outline" size="sm" className="h-8 w-full border-border bg-background/30 text-sky-400 hover:text-sky-300" disabled={isBusy} onClick={() => void handleComplete(appointment)}>
                                     <ClipboardCheck className="size-3.5" /> {isBusy ? "Updating..." : "Complete"}
                                   </Button>
                                 )}
                                 {canMarkPaid && (
-                                  <Button variant="outline" size="sm" className="h-8 border-border bg-background/30 text-emerald-400 hover:text-emerald-300" disabled={isBusy} onClick={() => void handleMarkPaid(appointment)}>
+                                  <Button variant="outline" size="sm" className="h-8 w-full border-border bg-background/30 text-emerald-400 hover:text-emerald-300" disabled={isBusy} onClick={() => void handleMarkPaid(appointment)}>
                                     <BadgeDollarSign className="size-3.5" /> {isBusy ? "Updating..." : "Mark Paid"}
                                   </Button>
                                 )}
 
                                 {canCancel && (
-                                  <Button variant="outline" size="sm" className="h-8 border-border bg-background/30 text-destructive hover:bg-destructive/10" disabled={isBusy} onClick={() => setCancelTarget(appointment)}>
+                                  <Button variant="outline" size="sm" className="h-8 w-full border-border bg-background/30 text-destructive hover:bg-destructive/10" disabled={isBusy} onClick={() => setCancelTarget(appointment)}>
                                     <XCircle className="size-3.5" /> Cancel
                                   </Button>
                                 )}
