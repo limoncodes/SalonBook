@@ -1,16 +1,18 @@
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Clock, Tag } from "lucide-react"
-import type { ServiceItem } from "@/components/api/get"
+import { getaddServices } from "@/components/api/get"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
-type FeaturedServicesProps = {
-  services: ServiceItem[]
-}
-
-export function FeaturedServices({ services }: FeaturedServicesProps) {
-  const featured = services.slice(0, 6)
+export async function FeaturedServices() {
+  let services: Awaited<ReturnType<typeof getaddServices>> = []
+  try {
+    services = await getaddServices({ status: "Active" })
+  } catch {
+    services = []
+  }
+  const featured = (Array.isArray(services) ? services : []).slice(0, 6)
 
   return (
     <section className="bg-background px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
