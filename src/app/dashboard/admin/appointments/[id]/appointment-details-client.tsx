@@ -164,7 +164,7 @@ export function AdminAppointmentDetailsClient() {
 
   const canConfirm = appointment.appointmentStatus === "Pending"
   const canComplete = appointment.appointmentStatus === "Confirmed"
-  const canCancel = appointment.appointmentStatus === "Pending" || appointment.appointmentStatus === "Confirmed"
+  const canCancel = (appointment.appointmentStatus === "Pending" || appointment.appointmentStatus === "Confirmed") && appointment.paymentStatus !== "Paid"
   const canMarkPaid = appointment.paymentStatus === "Unpaid"
 
   return (

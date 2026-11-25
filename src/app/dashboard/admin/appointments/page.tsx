@@ -219,7 +219,7 @@ export default function AdminAppointmentsPage() {
                     const isBusy = busyId === appointment._id
                     const canConfirm = appointment.appointmentStatus === "Pending"
                     const canComplete = appointment.appointmentStatus === "Confirmed"
-                    const canCancel = appointment.appointmentStatus === "Pending" || appointment.appointmentStatus === "Confirmed"
+                    const canCancel = (appointment.appointmentStatus === "Pending" || appointment.appointmentStatus === "Confirmed") && appointment.paymentStatus !== "Paid"
                     const canMarkPaid = appointment.paymentStatus === "Unpaid"
                     return (
                       <div key={appointment._id} className="rounded-xl border border-border/70 bg-background/20 p-4">
@@ -312,7 +312,7 @@ export default function AdminAppointmentsPage() {
                         const isBusy = busyId === appointment._id
                         const canConfirm = appointment.appointmentStatus === "Pending"
                         const canComplete = appointment.appointmentStatus === "Confirmed"
-                        const canCancel = appointment.appointmentStatus === "Pending" || appointment.appointmentStatus === "Confirmed"
+                        const canCancel = (appointment.appointmentStatus === "Pending" || appointment.appointmentStatus === "Confirmed") && appointment.paymentStatus !== "Paid"
                         const canMarkPaid = appointment.paymentStatus === "Unpaid"
                         return (
                           <tr key={appointment._id} className="border-b border-border/50 last:border-b-0 align-top">
