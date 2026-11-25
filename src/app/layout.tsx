@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter, Playfair_Display } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 import "./globals.css";
@@ -33,7 +34,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       )}
     >
       <body className="min-h-full flex flex-col">
-        <Navbar />
+        <Suspense fallback={<div className="h-20 w-full border-b border-border/70 bg-background/90" />}>
+          <Navbar />
+        </Suspense>
 
         <main className="flex-1">{children}</main>
         <Footer />
