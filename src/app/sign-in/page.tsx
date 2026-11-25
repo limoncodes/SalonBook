@@ -26,6 +26,23 @@ export default function SignInPage() {
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [generalError, setGeneralError] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setGeneralError("");
+    try {
+      setIsGoogleLoading(true);
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+    } catch (error) {
+      console.error("Google sign in error:", error);
+      setGeneralError("Failed to sign in with Google. Please try again.");
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -172,7 +189,7 @@ export default function SignInPage() {
 
                   <Button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isGoogleLoading}
                     className="h-11 w-full rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary-light hover:text-[#08090d]"
                   >
                     {isSubmitting ? (
@@ -183,6 +200,35 @@ export default function SignInPage() {
                     ) : (
                       "Sign In"
                     )}
+                  </Button>
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-border/70" />
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="bg-surface px-3 text-text-secondary">Or continue with</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isSubmitting || isGoogleLoading}
+                    onClick={handleGoogleSignIn}
+                    className="h-11 w-full rounded-lg border-border bg-background/30 text-sm font-medium text-foreground hover:border-primary/40 hover:bg-primary/10 hover:text-primary-light"
+                  >
+                    {isGoogleLoading ? (
+                      <Loader2 className="size-4 animate-spin" data-icon="inline-start" />
+                    ) : (
+                      <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true" data-icon="inline-start">
+                        <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.2-.9 2.2-1.9 2.9l3.1 2.4c1.8-1.7 2.8-4.1 2.8-7 0-.7-.1-1.4-.2-2H12z" />
+                        <path fill="#34A853" d="M12 22c2.7 0 5-0.9 6.6-2.5l-3.1-2.4c-.9.6-2 .9-3.5.9-2.7 0-5-1.8-5.8-4.3H3v2.5C4.7 19.8 8.1 22 12 22z" />
+                        <path fill="#4A90E2" d="M6.2 13.7c-.2-.6-.3-1.2-.3-1.7s.1-1.2.3-1.7V7.8H3C2.4 9.1 2 10.5 2 12s.4 2.9 1 4.2l3.2-2.5z" />
+                        <path fill="#FBBC05" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8C17 3 14.7 2 12 2 8.1 2 4.7 4.2 3 7.8l3.2 2.5c.8-2.5 3.1-4.4 5.8-4.4z" />
+                      </svg>
+                    )}
+                    Continue with Google
                   </Button>
 
                   <p className="text-center text-sm text-text-secondary">
