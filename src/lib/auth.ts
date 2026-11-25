@@ -7,6 +7,9 @@ const client = new MongoClient(`mongodb+srv://${process.env.BETTER_AUTH_USERNAME
 const db = client.db("SalonBook");
 
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL,
+  secret: process.env.BETTER_AUTH_SECRET,
+  trustedOrigins: [process.env.BETTER_AUTH_URL].filter(Boolean) as string[],
   database: mongodbAdapter(db, {
     client,
   }),
@@ -21,7 +24,7 @@ export const auth = betterAuth({
   },
   plugins: [
     admin({
-      defaultRole: "user"
-    })
-  ]
+      defaultRole: "user",
+    }),
+  ],
 });
