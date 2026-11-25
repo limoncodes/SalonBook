@@ -141,14 +141,30 @@ function AddServiceForm() {
 
     setIsSubmitting(true);
     try {
+      const resetForm = () => {
+        setServiceName("");
+        setServiceCategory("");
+        setDescription("");
+        setPrice("");
+        setDuration("");
+        setServiceStatus("Active");
+        setServiceImage("");
+        setServiceImageName("");
+        setImagePreview("");
+        setErrors({});
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      };
+
       if (isEditMode && editId) {
         const result = await updateService(editId, data, email);
         console.log("Service updated:", result);
         toast.success("Service updated successfully");
+        resetForm();
       } else {
         const result = await AddServices(data, email);
         console.log("Service added:", result);
         toast.success("Service added successfully");
+        resetForm();
       }
     } catch (error) {
       console.error(isEditMode ? "Failed to update service:" : "Failed to add service:", error);
