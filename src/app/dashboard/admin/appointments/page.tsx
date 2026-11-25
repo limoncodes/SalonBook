@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { BadgeDollarSign, CalendarDays, CheckCircle2, ClipboardCheck, Clock, Eye, XCircle } from "lucide-react"
 import { toast } from "react-toastify"
@@ -40,6 +41,13 @@ function formatDate(value?: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
   return date.toLocaleString()
+}
+
+function formatAppointmentDate(value?: string) {
+  if (!value) return "N/A"
+  const date = new Date(`${value}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" })
 }
 
 function statusClass(status: string) {
@@ -235,23 +243,42 @@ export default function AdminAppointmentsPage() {
                         </div>
 
                         <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                          <div>
+                          <div className="sm:col-span-2">
                             <p className="text-text-secondary">Service</p>
-                            <p className="font-medium text-foreground">{appointment.serviceName}</p>
-                            <p className="text-xs text-text-secondary">{appointment.serviceCategory || "N/A"}</p>
+                            <div className="mt-1 flex items-center gap-3">
+                              <div className="relative size-11 shrink-0 overflow-hidden rounded-lg border border-border/70 bg-background/40">
+                                {appointment.serviceImage ? (
+                                  <Image src={appointment.serviceImage} alt={appointment.serviceName} fill className="object-cover" sizes="44px" />
+                                ) : (
+                                  <div className="flex h-full items-center justify-center text-[10px] text-text-secondary">No img</div>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-medium text-foreground">{appointment.serviceName}</p>
+                                <p className="mt-0.5 inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary-light">
+                                  {appointment.serviceCategory || "N/A"}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                           <div>
                             <p className="text-text-secondary">Date & Time</p>
-                            <p className="text-foreground">{appointment.appointmentDate}</p>
-                            <p className="text-xs text-text-secondary">{appointment.timeSlot}</p>
+                            <p className="mt-1 inline-flex items-center gap-2 font-medium text-foreground">
+                              <CalendarDays className="size-4 text-primary-light" />
+                              {formatAppointmentDate(appointment.appointmentDate)}
+                            </p>
+                            <p className="mt-1 inline-flex items-center gap-2 text-text-secondary">
+                              <Clock className="size-4 text-primary-light" />
+                              {appointment.timeSlot}
+                            </p>
                           </div>
                           <div>
                             <p className="text-text-secondary">Price</p>
-                            <p className="text-foreground">${appointment.price}</p>
+                            <p className="mt-1 font-medium text-foreground">${appointment.price}</p>
                           </div>
-                          <div>
+                          <div className="sm:col-span-2">
                             <p className="text-text-secondary">Requested</p>
-                            <p className="text-foreground">{formatDate(appointment.createdAt)}</p>
+                            <p className="mt-1 text-foreground">{formatDate(appointment.createdAt)}</p>
                           </div>
                         </div>
 
@@ -321,18 +348,37 @@ export default function AdminAppointmentsPage() {
                               <p className="text-xs text-text-secondary">{appointment.userEmail}</p>
                             </td>
                             <td className="px-4 py-4">
-                              <p className="font-medium text-foreground">{appointment.serviceName}</p>
-                              <p className="text-xs text-text-secondary">{appointment.serviceCategory || "N/A"}</p>
-                              {appointment.message && (
-                                <p className="mt-1 max-w-[220px] truncate text-xs text-text-secondary" title={appointment.message}>
-                                  Msg: {appointment.message}
-                                </p>
-                              )}
+                              <div className="flex items-center gap-3">
+                                <div className="relative size-11 shrink-0 overflow-hidden rounded-lg border border-border/70 bg-background/40">
+                                  {appointment.serviceImage ? (
+                                    <Image src={appointment.serviceImage} alt={appointment.serviceName} fill className="object-cover" sizes="44px" />
+                                  ) : (
+                                    <div className="flex h-full items-center justify-center text-[10px] text-text-secondary">No img</div>
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-medium text-foreground">{appointment.serviceName}</p>
+                                  <p className="mt-0.5 inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary-light">
+                                    {appointment.serviceCategory || "N/A"}
+                                  </p>
+                                  {appointment.message && (
+                                    <p className="mt-1 max-w-[200px] truncate text-xs text-text-secondary" title={appointment.message}>
+                                      “{appointment.message}”
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
                             </td>
-                            <td className="px-4 py-4 text-text-secondary">
-                              <div className="flex flex-col gap-1">
-                                <span className="inline-flex items-center gap-1.5"><CalendarDays className="size-3.5" />{appointment.appointmentDate}</span>
-                                <span className="inline-flex items-center gap-1.5"><Clock className="size-3.5" />{appointment.timeSlot}</span>
+                            <td className="px-4 py-4">
+                              <div className="flex flex-col gap-1.5">
+                                <span className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
+                                  <CalendarDays className="size-4 text-primary-light" />
+                                  {formatAppointmentDate(appointment.appointmentDate)}
+                                </span>
+                                <span className="inline-flex items-center gap-2 text-sm text-text-secondary">
+                                  <Clock className="size-4 text-primary-light" />
+                                  {appointment.timeSlot}
+                                </span>
                               </div>
                             </td>
                             <td className="px-4 py-4 text-foreground">${appointment.price}</td>
