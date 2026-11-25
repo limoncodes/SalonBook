@@ -4,7 +4,7 @@ import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { ArrowLeft, CalendarDays, CheckCircle2, ClipboardCheck, Clock, Mail, Tag, User, XCircle } from "lucide-react"
+import { ArrowLeft, BadgeDollarSign, CalendarDays, CheckCircle2, ClipboardCheck, Clock, Mail, Tag, User, XCircle } from "lucide-react"
 import { toast } from "react-toastify"
 import { useSession } from "@/lib/auth-client"
 import { authHeaders } from "@/lib/jwt"
@@ -120,6 +120,25 @@ export function AdminAppointmentDetailsClient() {
     }
   }
 
+  const handleMarkPaid = async () => {
+    const email = session?.user?.email
+    if (!appointment || !email) return
+    setBusy(true)
+    try {
+      const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+      const headers = await authHeaders(email)
+      const res = await fetch(`${baseurl}/appointments/${appointment._id}/mark-paid`, { method: "PATCH", headers })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(data?.message || "Failed to mark appointment as paid")
+      setAppointment((prev) => (prev ? { ...prev, paymentStatus: "Paid" } : prev))
+      toast.success("Appointment marked as paid")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to mark appointment as paid")
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const handleCancel = async () => {
     const email = session?.user?.email
     if (!appointment || !email) return
@@ -146,6 +165,7 @@ export function AdminAppointmentDetailsClient() {
   const canConfirm = appointment.appointmentStatus === "Pending"
   const canComplete = appointment.appointmentStatus === "Confirmed"
   const canCancel = appointment.appointmentStatus === "Pending" || appointment.appointmentStatus === "Confirmed"
+  const canMarkPaid = appointment.paymentStatus === "Unpaid"
 
   return (
     <div className="min-h-full bg-background px-4 py-10 sm:px-6 lg:px-8">
@@ -219,6 +239,11 @@ export function AdminAppointmentDetailsClient() {
                 {canComplete && (
                   <Button variant="outline" className="border-sky-500/30 bg-sky-500/10 text-sky-400 hover:bg-sky-500/20" onClick={() => void handleComplete()} disabled={busy}>
                     <ClipboardCheck className="size-4" /> {busy ? "Updating..." : "Mark Completed"}
+                  </Button>
+                )}
+                {canMarkPaid && (
+                  <Button variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20" onClick={() => void handleMarkPaid()} disabled={busy}>
+                    <BadgeDollarSign className="size-4" /> {busy ? "Updating..." : "Mark as Paid"}
                   </Button>
                 )}
                 {canCancel && (

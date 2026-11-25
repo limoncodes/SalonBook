@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { CalendarDays, CheckCircle2, ClipboardCheck, Clock, Eye, XCircle } from "lucide-react"
+import { BadgeDollarSign, CalendarDays, CheckCircle2, ClipboardCheck, Clock, Eye, XCircle } from "lucide-react"
 import { toast } from "react-toastify"
 import { useSession } from "@/lib/auth-client"
 import { authHeaders } from "@/lib/jwt"
@@ -133,6 +133,32 @@ export default function AdminAppointmentsPage() {
     }
   }
 
+  const handleMarkPaid = async (appointment: Appointment) => {
+    const email = session?.user?.email
+    if (!email) return toast.error("You must be signed in")
+    setBusyId(appointment._id)
+    try {
+      const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+      const headers = await authHeaders(email)
+      const res = await fetch(`${baseurl}/appointments/${appointment._id}/mark-paid`, {
+        method: "PATCH",
+        headers,
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(data?.message || "Failed to mark appointment as paid")
+      setAppointments((prev) =>
+        prev.map((item) =>
+          item._id === appointment._id ? { ...item, paymentStatus: "Paid" } : item,
+        ),
+      )
+      toast.success("Appointment marked as paid")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to mark appointment as paid")
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   const handleCancel = async () => {
     if (!cancelTarget) return
     const email = session?.user?.email
@@ -194,6 +220,7 @@ export default function AdminAppointmentsPage() {
                     const canConfirm = appointment.appointmentStatus === "Pending"
                     const canComplete = appointment.appointmentStatus === "Confirmed"
                     const canCancel = appointment.appointmentStatus === "Pending" || appointment.appointmentStatus === "Confirmed"
+                    const canMarkPaid = appointment.paymentStatus === "Unpaid"
                     return (
                       <div key={appointment._id} className="rounded-xl border border-border/70 bg-background/20 p-4">
                         <div className="flex items-start justify-between gap-3">
@@ -249,6 +276,11 @@ export default function AdminAppointmentsPage() {
                               <ClipboardCheck className="size-3.5" /> {isBusy ? "Updating..." : "Complete"}
                             </Button>
                           )}
+                          {canMarkPaid && (
+                            <Button variant="outline" size="sm" className="h-8 border-border bg-background/30 text-emerald-400 hover:text-emerald-300" disabled={isBusy} onClick={() => void handleMarkPaid(appointment)}>
+                              <BadgeDollarSign className="size-3.5" /> {isBusy ? "Updating..." : "Mark Paid"}
+                            </Button>
+                          )}
 
                           {canCancel && (
                             <Button variant="outline" size="sm" className="h-8 border-border bg-background/30 text-destructive hover:bg-destructive/10" disabled={isBusy} onClick={() => setCancelTarget(appointment)}>
@@ -281,6 +313,7 @@ export default function AdminAppointmentsPage() {
                         const canConfirm = appointment.appointmentStatus === "Pending"
                         const canComplete = appointment.appointmentStatus === "Confirmed"
                         const canCancel = appointment.appointmentStatus === "Pending" || appointment.appointmentStatus === "Confirmed"
+                        const canMarkPaid = appointment.paymentStatus === "Unpaid"
                         return (
                           <tr key={appointment._id} className="border-b border-border/50 last:border-b-0 align-top">
                             <td className="px-6 py-4 sm:px-8">
@@ -327,6 +360,11 @@ export default function AdminAppointmentsPage() {
                                 {canComplete && (
                                   <Button variant="outline" size="sm" className="h-8 border-border bg-background/30 text-sky-400 hover:text-sky-300" disabled={isBusy} onClick={() => void handleComplete(appointment)}>
                                     <ClipboardCheck className="size-3.5" /> {isBusy ? "Updating..." : "Complete"}
+                                  </Button>
+                                )}
+                                {canMarkPaid && (
+                                  <Button variant="outline" size="sm" className="h-8 border-border bg-background/30 text-emerald-400 hover:text-emerald-300" disabled={isBusy} onClick={() => void handleMarkPaid(appointment)}>
+                                    <BadgeDollarSign className="size-3.5" /> {isBusy ? "Updating..." : "Mark Paid"}
                                   </Button>
                                 )}
 
