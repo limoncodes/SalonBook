@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, Scissors } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProfileDropdown } from "@/components/home/profile-dropdown";
@@ -14,6 +15,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -21,8 +23,12 @@ const navLinks = [
 ];
 
 export function Navbar() {
+  const pathname = usePathname();
   const { data: session } = authClient.useSession();
   const user = session?.user;
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/90 backdrop-blur-xl">
@@ -45,15 +51,24 @@ export function Navbar() {
           className="hidden items-center gap-8 md:flex"
           aria-label="Main navigation"
         >
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-sm font-medium text-text-secondary transition-colors hover:text-primary-light"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const active = isActive(link.href)
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "relative text-sm font-medium transition-colors hover:text-primary-light",
+                  active ? "text-primary-light" : "text-text-secondary",
+                )}
+              >
+                {link.label}
+                {active && (
+                  <span className="absolute -bottom-2 left-0 h-0.5 w-full rounded-full bg-primary-light" />
+                )}
+              </Link>
+            )
+          })}
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
@@ -111,20 +126,26 @@ export function Navbar() {
                 className="flex flex-col gap-2 px-4 py-6"
                 aria-label="Mobile navigation"
               >
-                {navLinks.map((link) => (
-                  <SheetClose
-                    key={link.href}
-                    nativeButton={false}
-                    render={
-                      <Link
-                        href={link.href}
-                        className="rounded-lg px-3 py-3 text-sm font-medium text-text-secondary transition-colors hover:bg-primary/10 hover:text-primary-light"
-                      />
-                    }
-                  >
-                    {link.label}
-                  </SheetClose>
-                ))}
+                {navLinks.map((link) => {
+                  const active = isActive(link.href)
+                  return (
+                    <SheetClose
+                      key={link.href}
+                      nativeButton={false}
+                      render={
+                        <Link
+                          href={link.href}
+                          className={cn(
+                            "rounded-lg px-3 py-3 text-sm font-medium transition-colors hover:bg-primary/10 hover:text-primary-light",
+                            active ? "bg-primary/10 text-primary-light" : "text-text-secondary",
+                          )}
+                        />
+                      }
+                    >
+                      {link.label}
+                    </SheetClose>
+                  )
+                })}
               </nav>
 
               <div className="mt-auto flex flex-col gap-3 border-t border-border px-6 py-6">

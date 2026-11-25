@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ImagePlus, PlusCircle, Save, Upload } from "lucide-react";
 import { toast } from "react-toastify";
+import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,6 +32,7 @@ const serviceCategories = [
 ];
 
 function AddServiceForm() {
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const editId = searchParams.get("id");
   const isEditMode = Boolean(editId);
@@ -131,14 +133,20 @@ function AddServiceForm() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
+    const email = session?.user?.email;
+    if (!email) {
+      toast.error("You must be signed in");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       if (isEditMode && editId) {
-        const result = await updateService(editId, data);
+        const result = await updateService(editId, data, email);
         console.log("Service updated:", result);
         toast.success("Service updated successfully");
       } else {
-        const result = await AddServices(data);
+        const result = await AddServices(data, email);
         console.log("Service added:", result);
         toast.success("Service added successfully");
       }

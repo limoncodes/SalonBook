@@ -1,3 +1,5 @@
+import { authHeaders } from "@/lib/jwt"
+
 const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
 
 export type AddServicePayload = {
@@ -26,11 +28,14 @@ export type ServiceMutationResponse = {
 
 export const AddServices = async (
   formData: AddServicePayload,
+  email: string,
 ): Promise<AddServiceResponse> => {
+  const headers = await authHeaders(email)
   const res = await fetch(`${baseurl}/Add-Services`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...headers,
     },
     body: JSON.stringify(formData),
   })
@@ -45,11 +50,14 @@ export const AddServices = async (
 export const updateService = async (
   id: string,
   formData: UpdateServicePayload,
+  email: string,
 ): Promise<ServiceMutationResponse> => {
+  const headers = await authHeaders(email)
   const res = await fetch(`${baseurl}/addServices/${id}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
+      ...headers,
     },
     body: JSON.stringify(formData),
   })
@@ -63,9 +71,12 @@ export const updateService = async (
 
 export const deleteService = async (
   id: string,
+  email: string,
 ): Promise<ServiceMutationResponse> => {
+  const headers = await authHeaders(email)
   const res = await fetch(`${baseurl}/addServices/${id}`, {
     method: "DELETE",
+    headers,
   })
 
   if (!res.ok) {

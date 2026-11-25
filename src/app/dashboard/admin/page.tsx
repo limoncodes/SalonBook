@@ -3,7 +3,8 @@
 import * as React from "react"
 import { BadgeDollarSign, CalendarCheck2, CalendarClock, ClipboardList, Scissors, Users } from "lucide-react"
 import { toast } from "react-toastify"
-import { authClient } from "@/lib/auth-client"
+import { authClient, useSession } from "@/lib/auth-client"
+import { authHeaders } from "@/lib/jwt"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 type Appointment = {
@@ -19,6 +20,7 @@ type StatCard = {
 }
 
 export default function AdminDashboard() {
+  const { data: session } = useSession()
   const [stats, setStats] = React.useState({
     totalCustomers: 0,
     activeServices: 0,
@@ -30,15 +32,18 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = React.useState(true)
 
   React.useEffect(() => {
+    const email = session?.user?.email
+    if (!email) return
     let active = true
 
     const loadStats = async () => {
       try {
         const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+        const headers = await authHeaders(email)
         const [usersRes, servicesRes, appointmentsRes] = await Promise.allSettled([
           authClient.admin.listUsers({ query: { limit: 1 } }),
           fetch(`${baseurl}/addServices?status=Active`, { cache: "no-store" }),
-          fetch(`${baseurl}/appointments`, { cache: "no-store" }),
+          fetch(`${baseurl}/appointments`, { cache: "no-store", headers }),
         ])
 
         let totalCustomers = 0
@@ -88,7 +93,7 @@ export default function AdminDashboard() {
     return () => {
       active = false
     }
-  }, [])
+  }, [session?.user?.email])
 
   const cards: StatCard[] = [
     { label: "Total Registered Customers", value: stats.totalCustomers, icon: Users, iconClassName: "bg-primary/15 text-primary-light" },

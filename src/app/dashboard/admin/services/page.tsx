@@ -4,6 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { Pencil, PlusCircle, Trash2 } from "lucide-react"
 import { toast } from "react-toastify"
+import { useSession } from "@/lib/auth-client"
 import { getaddServices, type ServiceItem } from "@/components/api/get"
 import { deleteService, updateService } from "@/components/api/post"
 import {
@@ -20,6 +21,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function ManageServicesPage() {
+  const { data: session } = useSession()
   const [services, setServices] = React.useState<ServiceItem[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [busyId, setBusyId] = React.useState<string | null>(null)
@@ -48,11 +50,13 @@ export default function ManageServicesPage() {
 
   const handleDelete = async () => {
     if (!serviceToDelete) return
+    const email = session?.user?.email
+    if (!email) return toast.error("You must be signed in")
 
     const id = serviceToDelete._id
     setBusyId(id)
     try {
-      await deleteService(id)
+      await deleteService(id, email)
       setServices((prev) => prev.filter((service) => service._id !== id))
       toast.success("Service deleted successfully")
       setServiceToDelete(null)
@@ -65,10 +69,12 @@ export default function ManageServicesPage() {
   }
 
   const handleToggleStatus = async (service: ServiceItem) => {
+    const email = session?.user?.email
+    if (!email) return toast.error("You must be signed in")
     const nextStatus = service.serviceStatus === "Active" ? "Inactive" : "Active"
     setBusyId(service._id)
     try {
-      await updateService(service._id, { serviceStatus: nextStatus })
+      await updateService(service._id, { serviceStatus: nextStatus }, email)
       setServices((prev) =>
         prev.map((item) =>
           item._id === service._id ? { ...item, serviceStatus: nextStatus } : item,

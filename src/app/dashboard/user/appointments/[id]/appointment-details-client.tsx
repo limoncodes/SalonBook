@@ -7,6 +7,7 @@ import { useParams } from "next/navigation"
 import { ArrowLeft, CalendarDays, Clock, Tag, XCircle } from "lucide-react"
 import { toast } from "react-toastify"
 import { useSession } from "@/lib/auth-client"
+import { authHeaders } from "@/lib/jwt"
 import { PaymentButton } from "../payment-button"
 import {
   AlertDialog,
@@ -67,7 +68,8 @@ export function AppointmentDetailsClient() {
     const load = async () => {
       try {
         const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
-        const res = await fetch(`${baseurl}/appointments/${id}?email=${encodeURIComponent(email)}`, { cache: "no-store" })
+        const headers = await authHeaders(email)
+        const res = await fetch(`${baseurl}/appointments/${id}?email=${encodeURIComponent(email)}`, { cache: "no-store", headers })
         const data = await res.json().catch(() => null)
         if (!res.ok) throw new Error(data?.message || "Failed to load appointment")
         if (active) setAppointment(data)
@@ -88,9 +90,10 @@ export function AppointmentDetailsClient() {
     setBusy(true)
     try {
       const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+      const headers = await authHeaders(session.user.email)
       const res = await fetch(`${baseurl}/appointments/${appointment._id}/cancel`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...headers },
         body: JSON.stringify({ userEmail: session.user.email }),
       })
       const data = await res.json().catch(() => null)

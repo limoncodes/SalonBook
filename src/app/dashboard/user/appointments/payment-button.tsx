@@ -4,6 +4,7 @@ import * as React from "react"
 import { CreditCard, Loader2, ShieldCheck } from "lucide-react"
 import { toast } from "react-toastify"
 import { useSession } from "@/lib/auth-client"
+import { authHeaders } from "@/lib/jwt"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -41,9 +42,10 @@ export function PaymentButton({
     setIsLoading(true)
     try {
       const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+      const headers = await authHeaders(session.user.email)
       const res = await fetch(`${baseurl}/create-checkout-session`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...headers },
         body: JSON.stringify({
           appointmentId,
           userEmail: session.user.email,

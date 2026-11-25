@@ -4,8 +4,10 @@ import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { ArrowLeft, CalendarDays, CheckCircle2, CircleDollarSign, ClipboardCheck, Clock, Mail, Tag, User, XCircle } from "lucide-react"
+import { ArrowLeft, CalendarDays, CheckCircle2, ClipboardCheck, Clock, Mail, Tag, User, XCircle } from "lucide-react"
 import { toast } from "react-toastify"
+import { useSession } from "@/lib/auth-client"
+import { authHeaders } from "@/lib/jwt"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +52,7 @@ function statusClass(status: string) {
 }
 
 export function AdminAppointmentDetailsClient() {
+  const { data: session } = useSession()
   const params = useParams<{ id: string }>()
   const id = params?.id
   const [appointment, setAppointment] = React.useState<Appointment | null>(null)
@@ -58,12 +61,14 @@ export function AdminAppointmentDetailsClient() {
   const [cancelOpen, setCancelOpen] = React.useState(false)
 
   React.useEffect(() => {
-    if (!id) return
+    const email = session?.user?.email
+    if (!id || !email) return
     let active = true
     const load = async () => {
       try {
         const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
-        const res = await fetch(`${baseurl}/appointments/${id}`, { cache: "no-store" })
+        const headers = await authHeaders(email)
+        const res = await fetch(`${baseurl}/appointments/${id}`, { cache: "no-store", headers })
         const data = await res.json().catch(() => null)
         if (!res.ok) throw new Error(data?.message || "Failed to load appointment")
         if (active) setAppointment(data)
@@ -75,14 +80,16 @@ export function AdminAppointmentDetailsClient() {
     }
     void load()
     return () => { active = false }
-  }, [id])
+  }, [id, session?.user?.email])
 
   const handleConfirm = async () => {
-    if (!appointment) return
+    const email = session?.user?.email
+    if (!appointment || !email) return
     setBusy(true)
     try {
       const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
-      const res = await fetch(`${baseurl}/appointments/${appointment._id}/confirm`, { method: "PATCH" })
+      const headers = await authHeaders(email)
+      const res = await fetch(`${baseurl}/appointments/${appointment._id}/confirm`, { method: "PATCH", headers })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.message || "Failed to confirm appointment")
       setAppointment((prev) => (prev ? { ...prev, appointmentStatus: "Confirmed" } : prev))
@@ -95,11 +102,13 @@ export function AdminAppointmentDetailsClient() {
   }
 
   const handleComplete = async () => {
-    if (!appointment) return
+    const email = session?.user?.email
+    if (!appointment || !email) return
     setBusy(true)
     try {
       const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
-      const res = await fetch(`${baseurl}/appointments/${appointment._id}/complete`, { method: "PATCH" })
+      const headers = await authHeaders(email)
+      const res = await fetch(`${baseurl}/appointments/${appointment._id}/complete`, { method: "PATCH", headers })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.message || "Failed to complete appointment")
       setAppointment((prev) => (prev ? { ...prev, appointmentStatus: "Completed" } : prev))
@@ -111,29 +120,14 @@ export function AdminAppointmentDetailsClient() {
     }
   }
 
-  const handleMarkPaid = async () => {
-    if (!appointment) return
-    setBusy(true)
-    try {
-      const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
-      const res = await fetch(`${baseurl}/appointments/${appointment._id}/mark-paid`, { method: "PATCH" })
-      const data = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(data?.message || "Failed to mark appointment as paid")
-      setAppointment((prev) => (prev ? { ...prev, paymentStatus: "Paid" } : prev))
-      toast.success("Appointment marked as paid")
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to mark appointment as paid")
-    } finally {
-      setBusy(false)
-    }
-  }
-
   const handleCancel = async () => {
-    if (!appointment) return
+    const email = session?.user?.email
+    if (!appointment || !email) return
     setBusy(true)
     try {
       const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
-      const res = await fetch(`${baseurl}/appointments/${appointment._id}/admin-cancel`, { method: "PATCH" })
+      const headers = await authHeaders(email)
+      const res = await fetch(`${baseurl}/appointments/${appointment._id}/admin-cancel`, { method: "PATCH", headers })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.message || "Failed to cancel appointment")
       setAppointment((prev) => (prev ? { ...prev, appointmentStatus: "Cancelled" } : prev))
@@ -152,7 +146,6 @@ export function AdminAppointmentDetailsClient() {
   const canConfirm = appointment.appointmentStatus === "Pending"
   const canComplete = appointment.appointmentStatus === "Confirmed"
   const canCancel = appointment.appointmentStatus === "Pending" || appointment.appointmentStatus === "Confirmed"
-  const canMarkPaid = appointment.paymentStatus === "Unpaid" && appointment.appointmentStatus !== "Cancelled"
 
   return (
     <div className="min-h-full bg-background px-4 py-10 sm:px-6 lg:px-8">
@@ -226,11 +219,6 @@ export function AdminAppointmentDetailsClient() {
                 {canComplete && (
                   <Button variant="outline" className="border-sky-500/30 bg-sky-500/10 text-sky-400 hover:bg-sky-500/20" onClick={() => void handleComplete()} disabled={busy}>
                     <ClipboardCheck className="size-4" /> {busy ? "Updating..." : "Mark Completed"}
-                  </Button>
-                )}
-                {canMarkPaid && (
-                  <Button variant="outline" className="border-primary/30 bg-primary/10 text-primary-light hover:bg-primary/20" onClick={() => void handleMarkPaid()} disabled={busy}>
-                    <CircleDollarSign className="size-4" /> {busy ? "Updating..." : "Mark as Paid"}
                   </Button>
                 )}
                 {canCancel && (

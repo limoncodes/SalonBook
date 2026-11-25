@@ -5,6 +5,7 @@ import Link from "next/link"
 import { CalendarDays, Clock, Eye, Trash2, XCircle } from "lucide-react"
 import { toast } from "react-toastify"
 import { useSession } from "@/lib/auth-client"
+import { authHeaders } from "@/lib/jwt"
 import { PaymentButton } from "./payment-button"
 
 import {
@@ -69,8 +70,10 @@ export default function UserAppointmentsPage() {
     const loadAppointments = async () => {
       try {
         const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+        const headers = await authHeaders(email)
         const res = await fetch(`${baseurl}/appointments?email=${encodeURIComponent(email)}`, {
           cache: "no-store",
+          headers,
         })
         const data = await res.json()
         if (active) setAppointments(Array.isArray(data) ? data : [])
@@ -95,9 +98,10 @@ export default function UserAppointmentsPage() {
     setBusyId(cancelTarget._id)
     try {
       const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+      const headers = await authHeaders(session.user.email)
       const res = await fetch(`${baseurl}/appointments/${cancelTarget._id}/cancel`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...headers },
         body: JSON.stringify({ userEmail: session.user.email }),
       })
       const data = await res.json().catch(() => null)
@@ -123,9 +127,10 @@ export default function UserAppointmentsPage() {
     setBusyId(deleteTarget._id)
     try {
       const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+      const headers = await authHeaders(session.user.email)
       const res = await fetch(
         `${baseurl}/appointments/${deleteTarget._id}?email=${encodeURIComponent(session.user.email)}`,
-        { method: "DELETE" },
+        { method: "DELETE", headers },
       )
       const data = await res.json().catch(() => null)
       if (!res.ok) {

@@ -3,6 +3,8 @@
 import * as React from "react"
 import { CalendarDays, Clock, CreditCard, ReceiptText } from "lucide-react"
 import { toast } from "react-toastify"
+import { useSession } from "@/lib/auth-client"
+import { authHeaders } from "@/lib/jwt"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 type Transaction = {
@@ -39,16 +41,20 @@ function statusClass(status: string) {
 }
 
 export default function AdminTransactionsPage() {
+  const { data: session } = useSession()
   const [transactions, setTransactions] = React.useState<Transaction[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
 
   React.useEffect(() => {
+    const email = session?.user?.email
+    if (!email) return
     let active = true
 
     const loadTransactions = async () => {
       try {
         const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
-        const res = await fetch(`${baseurl}/appointments`, { cache: "no-store" })
+        const headers = await authHeaders(email)
+        const res = await fetch(`${baseurl}/appointments`, { cache: "no-store", headers })
         if (!res.ok) throw new Error("Failed to load transactions")
         const data = await res.json()
         const list = Array.isArray(data) ? (data as Transaction[]) : []
@@ -68,7 +74,7 @@ export default function AdminTransactionsPage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [session?.user?.email])
 
   return (
     <div className="min-h-full w-full bg-background px-4 py-10 sm:px-6 lg:px-8">

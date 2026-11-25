@@ -4,6 +4,8 @@ import * as React from "react"
 import Link from "next/link"
 import { CalendarDays, CheckCircle2, ClipboardCheck, Clock, Eye, XCircle } from "lucide-react"
 import { toast } from "react-toastify"
+import { useSession } from "@/lib/auth-client"
+import { authHeaders } from "@/lib/jwt"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,17 +50,21 @@ function statusClass(status: string) {
 }
 
 export default function AdminAppointmentsPage() {
+  const { data: session } = useSession()
   const [appointments, setAppointments] = React.useState<Appointment[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [busyId, setBusyId] = React.useState<string | null>(null)
   const [cancelTarget, setCancelTarget] = React.useState<Appointment | null>(null)
 
   React.useEffect(() => {
+    const email = session?.user?.email
+    if (!email) return
     let active = true
     const loadAppointments = async () => {
       try {
         const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
-        const res = await fetch(`${baseurl}/appointments`, { cache: "no-store" })
+        const headers = await authHeaders(email)
+        const res = await fetch(`${baseurl}/appointments`, { cache: "no-store", headers })
         const data = await res.json()
         if (active) setAppointments(Array.isArray(data) ? data : [])
       } catch (error) {
@@ -73,14 +79,18 @@ export default function AdminAppointmentsPage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [session?.user?.email])
 
   const handleConfirm = async (appointment: Appointment) => {
+    const email = session?.user?.email
+    if (!email) return toast.error("You must be signed in")
     setBusyId(appointment._id)
     try {
       const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+      const headers = await authHeaders(email)
       const res = await fetch(`${baseurl}/appointments/${appointment._id}/confirm`, {
         method: "PATCH",
+        headers,
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.message || "Failed to confirm appointment")
@@ -98,11 +108,15 @@ export default function AdminAppointmentsPage() {
   }
 
   const handleComplete = async (appointment: Appointment) => {
+    const email = session?.user?.email
+    if (!email) return toast.error("You must be signed in")
     setBusyId(appointment._id)
     try {
       const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+      const headers = await authHeaders(email)
       const res = await fetch(`${baseurl}/appointments/${appointment._id}/complete`, {
         method: "PATCH",
+        headers,
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.message || "Failed to complete appointment")
@@ -121,11 +135,15 @@ export default function AdminAppointmentsPage() {
 
   const handleCancel = async () => {
     if (!cancelTarget) return
+    const email = session?.user?.email
+    if (!email) return toast.error("You must be signed in")
     setBusyId(cancelTarget._id)
     try {
       const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+      const headers = await authHeaders(email)
       const res = await fetch(`${baseurl}/appointments/${cancelTarget._id}/admin-cancel`, {
         method: "PATCH",
+        headers,
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.message || "Failed to cancel appointment")

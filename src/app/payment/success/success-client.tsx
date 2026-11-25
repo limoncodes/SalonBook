@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { CheckCircle2, Loader2, XCircle } from "lucide-react"
 import { useSession } from "@/lib/auth-client"
+import { authHeaders } from "@/lib/jwt"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -29,9 +30,10 @@ export function PaymentSuccessClient() {
     const verify = async () => {
       try {
         const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+        const headers = await authHeaders(userEmail)
         const res = await fetch(`${baseurl}/payments/verify`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...headers },
           body: JSON.stringify({ sessionId, appointmentId, userEmail }),
         })
         const data = await res.json().catch(() => null)

@@ -4,6 +4,7 @@ import * as React from "react"
 import { CalendarClock, CheckCircle2, CircleX, ClipboardList } from "lucide-react"
 import { toast } from "react-toastify"
 import { useSession } from "@/lib/auth-client"
+import { authHeaders } from "@/lib/jwt"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 type Appointment = {
@@ -31,8 +32,10 @@ export default function UserDashboard() {
     const loadAppointments = async () => {
       try {
         const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+        const headers = await authHeaders(email)
         const res = await fetch(`${baseurl}/appointments?email=${encodeURIComponent(email)}`, {
           cache: "no-store",
+          headers,
         })
         const data = await res.json()
         if (active) setAppointments(Array.isArray(data) ? data : [])

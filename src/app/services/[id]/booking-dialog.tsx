@@ -4,6 +4,7 @@ import * as React from "react"
 import { CalendarDays } from "lucide-react"
 import { toast } from "react-toastify"
 import { useSession } from "@/lib/auth-client"
+import { authHeaders } from "@/lib/jwt"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -89,9 +90,10 @@ export function BookingDialog({ service }: BookingDialogProps) {
     setIsSubmitting(true)
     try {
       const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+      const headers = await authHeaders(session.user.email)
       const res = await fetch(`${baseurl}/appointments`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...headers },
         body: JSON.stringify({
           serviceId: service._id,
           serviceName: service.serviceName,
