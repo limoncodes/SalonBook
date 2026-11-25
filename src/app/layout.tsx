@@ -5,6 +5,7 @@ import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
 import { cn } from "@/lib/utils";
 import { Navbar } from "@/components/home/navbar";
+import { Footer } from "@/components/home/footer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -34,7 +35,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <Navbar />
 
-        <main>{children}</main>
+        <main className="flex-1">{children}</main>
+        <Footer />
         <ToastContainer position="top-right" autoClose={3000} theme="dark" />
       </body>
     </html>
