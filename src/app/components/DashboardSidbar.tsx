@@ -24,6 +24,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useSession } from "@/lib/auth-client";
 
@@ -52,6 +53,7 @@ const menuItemsByRole: Record<"user" | "admin", MenuItem[]> = {
 
 export function DashboardSidber() {
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
   const { data: session } = useSession();
 
   const role = (session?.user as { role?: string } | undefined)?.role === "admin" ? "admin" : "user";
@@ -94,6 +96,7 @@ export function DashboardSidber() {
                     <SidebarMenuButton
                       isActive={isActive}
                       render={<Link href={item.url} />}
+                      onClick={() => setOpenMobile(false)}
                       className="h-11 rounded-xl px-3 text-text-secondary transition-all duration-200 hover:bg-primary/10 hover:text-primary-light data-active:bg-primary/15 data-active:text-primary-light data-active:shadow-[inset_0_0_0_1px_rgba(139,92,246,0.22)]"
                     >
                       <span

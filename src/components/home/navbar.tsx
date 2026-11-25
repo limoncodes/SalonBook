@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Scissors } from "lucide-react";
+import {
+  CalendarDays,
+  CreditCard,
+  LayoutDashboard,
+  Menu,
+  PlusCircle,
+  Scissors,
+  User,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProfileDropdown } from "@/components/home/profile-dropdown";
 import {
@@ -22,6 +31,29 @@ const navLinks = [
   { href: "/services", label: "Browse Services" },
 ];
 
+type DashboardLink = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+const dashboardLinksByRole: Record<"user" | "admin", DashboardLink[]> = {
+  user: [
+    { href: "/dashboard/user", label: "Overview", icon: LayoutDashboard },
+    { href: "/dashboard/user/appointments", label: "My Appointments", icon: CalendarDays },
+    { href: "/dashboard/user/profile", label: "My Profile", icon: User },
+  ],
+  admin: [
+    { href: "/dashboard/admin", label: "Overview", icon: LayoutDashboard },
+    { href: "/dashboard/admin/services", label: "Manage Services", icon: Scissors },
+    { href: "/dashboard/admin/Add-Services", label: "Add / Update Service", icon: PlusCircle },
+    { href: "/dashboard/admin/appointments", label: "Manage Appointments", icon: CalendarDays },
+    { href: "/dashboard/admin/users", label: "Manage Users", icon: Users },
+    { href: "/dashboard/admin/transactions", label: "Transactions", icon: CreditCard },
+    { href: "/dashboard/admin/profile", label: "My Profile", icon: User },
+  ],
+};
+
 export function Navbar() {
   const pathname = usePathname();
   const { data: session } = authClient.useSession();
@@ -29,6 +61,9 @@ export function Navbar() {
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+
+  const isAdmin = user?.role === "admin";
+  const dashboardLinks = dashboardLinksByRole[isAdmin ? "admin" : "user"];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/90 backdrop-blur-xl">
@@ -146,6 +181,40 @@ export function Navbar() {
                     </SheetClose>
                   )
                 })}
+
+                {user ? (
+                  <>
+                    <div className="my-2 border-t border-border/70" />
+                    <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
+                      Dashboard
+                    </p>
+                    <div className="flex flex-col gap-1.5">
+                      {dashboardLinks.map((item) => {
+                        const active = isActive(item.href)
+                        return (
+                          <SheetClose
+                            key={item.href}
+                            nativeButton={false}
+                            render={
+                              <Link
+                                href={item.href}
+                                className={cn(
+                                  "flex items-center gap-3 rounded-lg border border-transparent bg-surface/50 px-3 py-2.5 text-sm font-medium transition-colors hover:border-primary/20 hover:bg-primary/10 hover:text-primary-light",
+                                  active && "border-primary/25 bg-primary/10 text-primary-light",
+                                )}
+                              />
+                            }
+                          >
+                            <span className="flex size-7 items-center justify-center rounded-lg bg-background/50 text-text-secondary">
+                              <item.icon className="size-4 shrink-0" />
+                            </span>
+                            {item.label}
+                          </SheetClose>
+                        )
+                      })}
+                    </div>
+                  </>
+                ) : null}
               </nav>
 
               <div className="mt-auto flex flex-col gap-3 border-t border-border px-6 py-6">
