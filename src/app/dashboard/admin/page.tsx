@@ -42,7 +42,7 @@ export default function AdminDashboard() {
         const headers = await authHeaders(email)
         const [usersRes, servicesRes, appointmentsRes] = await Promise.allSettled([
           authClient.admin.listUsers({ query: { limit: 1 } }),
-          fetch(`${baseurl}/addServices?status=Active`, { cache: "no-store" }),
+          fetch(`${baseurl}/addServices?status=Active`, { cache: "no-store", headers }),
           fetch(`${baseurl}/appointments`, { cache: "no-store", headers }),
         ])
 

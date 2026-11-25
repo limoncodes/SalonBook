@@ -8,12 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { ServiceItem } from "@/components/api/get";
+import { useSession } from "@/lib/auth-client";
+import { authHeaders } from "@/lib/jwt";
 
 type ServicesClientProps = {
   initialServices: ServiceItem[];
 };
 
 export function ServicesClient({ initialServices }: ServicesClientProps) {
+  const { data: session } = useSession();
   const [services, setServices] = React.useState<ServiceItem[]>(initialServices);
   const [search, setSearch] = React.useState("");
   const [category, setCategory] = React.useState("All");
@@ -46,9 +49,10 @@ export function ServicesClient({ initialServices }: ServicesClientProps) {
 
         const queryString = params.toString();
         const baseurl = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+        const headers = await authHeaders(session?.user?.email || "guest@salonbook.local");
         const res = await fetch(
           `${baseurl}/addServices${queryString ? `?${queryString}` : ""}`,
-          { signal: controller.signal, cache: "no-store" },
+          { signal: controller.signal, cache: "no-store", headers },
         );
 
         if (!res.ok) throw new Error("Failed to fetch services");
@@ -67,7 +71,7 @@ export function ServicesClient({ initialServices }: ServicesClientProps) {
       controller.abort();
       clearTimeout(timeout);
     };
-  }, [search, category, sortBy]);
+  }, [search, category, sortBy, session?.user?.email]);
 
   return (
     <div className="min-h-full bg-background px-4 py-10 sm:px-6 lg:px-8">
